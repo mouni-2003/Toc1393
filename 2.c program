@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+bool is_terminal(char symbol) {
+    return (symbol == '0' || symbol == '1');
+}
+
+bool is_non_terminal(char symbol) {
+    return (symbol == 'S' || symbol == 'A');
+}
+
+bool is_epsilon(char symbol) {
+    return (symbol == 'ε');
+}
+
+bool is_valid_production(char symbol) {
+    return (is_terminal(symbol) || is_non_terminal(symbol) || is_epsilon(symbol));
+}
+
+bool match_production(const char *production, const char *input, int *input_index) {
+    int production_index = 0;
+
+    while (production[production_index] != '\0') {
+        if (is_terminal(production[production_index])) {
+            if (production[production_index] != input[*input_index])
+                return false;
+            (*input_index)++;
+        } else if (is_non_terminal(production[production_index])) {
+            if (production[production_index] == 'A') {
+                int temp_index = *input_index;
+                while (is_valid_production(input[temp_index]) && input[temp_index] != '1')
+                    temp_index++;
+
+                for (int i = *input_index; i <= temp_index; i++) {
+                    if (match_production("0A", input, &i) ||
+                        match_production("1A", input, &i))
+                        return true;
+                }
+
+                if (match_production("ε", input, input_index))
+                    return true;
+
+                return false;
+            }
+        } else if (is_epsilon(production[production_index])) {
+            return true;
+        }
+
+        production_index++;
+    }
+
+    return true;
+}
+
+bool belongs_to_language(const char *input) {
+    int input_index = 0;
+    return match_production("0A1", input, &input_index) && input[input_index] == '\0';
+}
+
+int main() {
+    char input[100];
+    printf("Enter a string: ");
+    scanf("%s", input);
+
+    if (belongs_to_language(input)) {
+        printf("Belongs to the language.\n");
+    } else {
+        printf("Does not belong to the language.\n");
+    }
+
+    return 0;
+}
