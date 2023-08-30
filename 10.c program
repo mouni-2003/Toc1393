@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+// Maximum number of states in the NFA
+#define MAX_STATES 10
+
+// NFA transition function
+typedef struct {
+    int target_state;
+    char transition_symbol;
+} Transition;
+
+typedef struct {
+    int state;
+    Transition transitions[MAX_STATES]; // Assuming a maximum of MAX_STATES transitions per state
+    int num_transitions;
+} NFA_State;
+
+NFA_State nfa[MAX_STATES];
+int num_states;
+
+// Add a transition to the NFA
+void add_transition(int from_state, int to_state, char symbol) {
+    Transition transition;
+    transition.target_state = to_state;
+    transition.transition_symbol = symbol;
+    nfa[from_state].transitions[nfa[from_state].num_transitions++] = transition;
+}
+
+// Find ε-closure for a state using depth-first search
+void find_epsilon_closure(int state, bool visited[]) {
+    visited[state] = true;
+
+    for (int i = 0; i < nfa[state].num_transitions; i++) {
+        if (nfa[state].transitions[i].transition_symbol == 'ε' && !visited[nfa[state].transitions[i].target_state]) {
+            find_epsilon_closure(nfa[state].transitions[i].target_state, visited);
+        }
+    }
+}
+
+int main() {
+    printf("Enter the number of states in the NFA: ");
+    scanf("%d", &num_states);
+
+    for (int i = 0; i < num_states; i++) {
+        nfa[i].state = i;
+        nfa[i].num_transitions = 0;
+
+        printf("Enter the number of transitions for state %d: ", i);
+        int num_transitions;
+        scanf("%d", &num_transitions);
+
+        for (int j = 0; j < num_transitions; j++) {
+            int target_state;
+            char transition_symbol;
+            printf("Enter target state and transition symbol (use 'ε' for epsilon): ");
+            scanf("%d %c", &target_state, &transition_symbol);
+            add_transition(i, target_state, transition_symbol);
+        }
+    }
+
+    printf("ε-Closure for each state:\n");
+    for (int i = 0; i < num_states; i++) {
+        bool visited[MAX_STATES] = {false};
+        find_epsilon_closure(i, visited);
+
+        printf("ε-Closure(%d): { ", i);
+        for (int j = 0; j < num_states; j++) {
+            if (visited[j]) {
+                printf("%d ", j);
+            }
+        }
+        printf("}\n");
+    }
+
+    return 0;
+}
