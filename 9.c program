@@ -1,0 +1,58 @@
+#include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
+
+// NFA transition function
+bool nfa_transition(int state, char input) {
+    switch(state) {
+        case 0:
+            if (input == 'o') return true;
+            else return false;
+        case 1:
+            if (input == '1') return true;
+            else return false;
+        default:
+            return false; // Invalid state
+    }
+}
+
+bool simulate_nfa(const char *input_string) {
+    int current_states[2] = {0, -1}; // -1 indicates no current state
+    int temp_states[2];
+    int i = 0;
+
+    while (input_string[i] != '\0') {
+        int j = 0;
+        for (; j < 2; j++) {
+            if (current_states[j] != -1 && nfa_transition(current_states[j], input_string[i])) {
+                temp_states[j] = (current_states[j] == 0) ? 1 : -1;
+            } else {
+                temp_states[j] = -1;
+            }
+        }
+        memcpy(current_states, temp_states, sizeof(current_states));
+        i++;
+    }
+
+    for (int j = 0; j < 2; j++) {
+        if (current_states[j] == 1) {
+            return true; // Check if any of the final states are accepting
+        }
+    }
+
+    return false;
+}
+
+int main() {
+    char input[100];
+    printf("Enter a string: ");
+    scanf("%s", input);
+
+    if (simulate_nfa(input)) {
+        printf("Accepted\n");
+    } else {
+        printf("Rejected\n");
+    }
+
+    return 0;
+}
